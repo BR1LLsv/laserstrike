@@ -6,8 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}LaserStrike Arena{% endblock %}</title>
     
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts (Oswald + Montserrat) -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
     <style>
@@ -33,6 +36,7 @@
             text-transform: uppercase;
         }
 
+        /* Неонові ефекти */
         .text-neon-green {
             color: var(--neon-green);
             text-shadow: 0 0 10px rgba(0, 255, 102, 0.5);
@@ -81,13 +85,14 @@
 
         .text-muted, 
         .text-secondary {
-            color: #a1a1aa !important;
+            color: #a1a1aa !important; /* Світло-сірий неоновий/нейтральний колір */
         }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
 
+    <!-- Навігація -->
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
         <div class="container">
             <a class="navbar-brand fs-3 text-neon-green" href="{% url 'index' %}">
@@ -124,6 +129,7 @@
         </div>
     </nav>
 
+    <!-- Повідомлення (Messages) -->
     <div class="container mt-3">
         {% if messages %}
             {% for message in messages %}
@@ -135,10 +141,12 @@
         {% endif %}
     </div>
 
+    <!-- Основний контент -->
     <main class="py-4">
         {% block content %}{% endblock %}
     </main>
 
+    <!-- Футер -->
     <footer class="py-4 text-center text-muted">
         <div class="container">
             <p class="mb-1">&copy; 2026 LaserStrike Arena. Всі права захищено.</p>
@@ -146,6 +154,7 @@
         </div>
     </footer>
 
+    <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     {% block extra_js %}{% endblock %}
 </body>

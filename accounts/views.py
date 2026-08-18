@@ -57,6 +57,7 @@ def logout_view(request):
 
 @login_required
 def profile_view(request):
+    # Явно отримуємо ВСІ бронювання поточного користувача
     user_bookings = Booking.objects.filter(user=request.user).select_related('arena').order_by('-created_at')
 
     if request.method == 'POST':
@@ -75,6 +76,6 @@ def profile_view(request):
     context = {
         'u_form': u_form,
         'p_form': p_form,
-        'bookings': user_bookings,
+        'bookings': user_bookings, # Передаємо повний QuerySet у шаблон
     }
     return render(request, 'accounts/profile.html', context)

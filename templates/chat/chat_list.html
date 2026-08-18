@@ -12,6 +12,7 @@
                 {% for item in users %}
                     <a href="{% url 'chat_room' item.user.id %}" class="list-group-item list-group-item-action bg-dark text-white border-secondary d-flex justify-content-between align-items-center py-3">
                         <div class="d-flex align-items-center gap-3">
+                            <!-- Виводимо аватарку, якщо вона є -->
                             {% if item.avatar_url %}
                                 <img src="{{ item.avatar_url }}" class="rounded-circle border border-secondary" style="width: 45px; height: 45px; object-fit: cover;" alt="avatar">
                             {% else %}
