@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Електронний Квиток №{{ booking.id }} — LaserStrike Arena{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <!-- Картка квитка з можливістю друку -->
+            <div id="ticketCard" class="card card-arena p-4 text-center border-warning shadow-lg position-relative overflow-hidden">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="badge bg-success px-3 py-2 fs-6"><i class="bi bi-check-circle me-1"></i>Оплачено</span>
+                    <span class="text-muted fw-bold">КВИТОК №{{ booking.id }}</span>
+                </div>
+
+                <h2 class="text-white my-2">{{ booking.arena.title }}</h2>
+                <p class="text-neon-green fs-5 mb-4"><i class="bi bi-geo-alt me-1"></i>LaserStrike Arena</p>
+
+                <!-- Генерація QR-коду -->
+                <div class="bg-white p-3 d-inline-block rounded-3 mx-auto mb-4 border border-secondary">
+                    <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" class="img-fluid" style="width: 180px; height: 180px;">
+                    <small class="d-block text-dark fw-bold mt-1" style="font-size: 11px;">СКАНУЙТЕ НА ВХОДІ</small>
+                </div>
+
+                <div class="p-3 bg-dark rounded border border-secondary text-start mb-4">
+                    <div class="row g-2 text-light">
+                        <div class="col-6">
+                            <small class="text-muted d-block">Гравець:</small>
+                            <strong>{{ booking.user.username }}</strong>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted d-block">Гравців:</small>
+                            <strong>{{ booking.players_count }} осіб</strong>
+                        </div>
+                        <div class="col-6 mt-2">
+                            <small class="text-muted d-block">Дата:</small>
+                            <strong>{{ booking.booking_date }}</strong>
+                        </div>
+                        <div class="col-6 mt-2">
+                            <small class="text-muted d-block">Час:</small>
+                            <strong>{{ booking.start_time|time:"H:i" }} - {{ booking.end_time|time:"H:i" }}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button onclick="window.print()" class="btn btn-neon w-100 fw-bold">
+                        <i class="bi bi-printer me-2"></i>Завантажити / Друк (PDF)
+                    </button>
+                    <a href="{% url 'profile' %}" class="btn btn-outline-light w-50">
+                        В кабінет
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Стилі для чистого друку лише квитка -->
+<style>
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #ticketCard, #ticketCard * {
+        visibility: visible;
+    }
+    #ticketCard {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background-color: #fff !important;
+        color: #000 !important;
+    }
+    .btn, nav, footer {
+        display: none !important;
+    }
+}
+</style>
+{% endblock %}

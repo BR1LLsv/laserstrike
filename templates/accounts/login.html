@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Вхід — LaserStrike Arena{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card card-arena p-4">
+                <h2 class="text-center text-white mb-4"><i class="bi bi-box-arrow-in-right me-2 text-neon-green"></i>Авторизація</h2>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label text-light">Ім'я користувача</label>
+                        <input type="text" name="username" class="form-control bg-dark text-white border-secondary" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-light">Пароль</label>
+                        <input type="password" name="password" class="form-control bg-dark text-white border-secondary" required>
+                    </div>
+                    <button type="submit" class="btn btn-neon w-100 fw-bold py-2 mt-3">Увійти</button>
+                </form>
+                <div class="text-center mt-3">
+                    <small class="text-muted">Ще не зареєстровані? <a href="{% url 'register' %}" class="text-neon-green text-decoration-none">Створити акаунт</a></small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

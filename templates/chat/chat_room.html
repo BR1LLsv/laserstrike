@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid my-4 px-4">
+    <div class="row g-4">
+        <!-- Ліва колонка: Список користувачів -->
+        <div class="col-lg-4">
+            <div class="card bg-dark border-secondary h-100">
+                <div class="card-header border-secondary text-white fw-bold">
+                    <i class="bi bi-chat-text me-2 text-neon-green"></i>Контакти
+                </div>
+                <div class="list-group list-group-flush overflow-auto" style="max-height: 500px;">
+    {% for item in users %}
+        <a href="{% url 'chat_room' item.user.id %}" class="list-group-item list-group-item-action bg-dark text-white border-secondary {% if item.user.id == receiver.id %}active bg-success bg-opacity-25 border-success{% endif %}">
+            <div class="d-flex align-items-center gap-2">
+                {% if item.avatar_url %}
+                    <img src="{{ item.avatar_url }}" class="rounded-circle border border-secondary" style="width: 32px; height: 32px; object-fit: cover;" alt="avatar">
+                {% else %}
+                    <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="width: 32px; height: 32px; font-size: 0.9rem;">
+                        {{ item.user.username|slice:":1"|upper }}
+                    </div>
+                {% endif %}
+                <span>{{ item.user.username }}</span>
+            </div>
+        </a>
+    {% endfor %}
+</div>
+            </div>
+        </div>
+
+        <!-- Права колонка: Вікно чату -->
+        <div class="col-lg-8">
+            <div class="card bg-dark border-secondary">
+                <div class="card-header border-secondary d-flex align-items-center">
+                    <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center text-white fw-bold me-2" style="width: 35px; height: 35px;">
+                        {{ receiver.username|slice:":1"|upper }}
+                    </div>
+                    <h5 class="text-white m-0 text-uppercase fw-bold">Чат з {{ receiver.username }}</h5>
+                </div>
+
+                <!-- Вікно повідомлень -->
+                <div class="card-body" id="chat-box" style="height: 450px; overflow-y: auto;">
+                    <div class="text-center text-white-50 mt-5">
+                        <div class="spinner-border spinner-border-sm text-neon-green me-2" role="status"></div>
+                        Завантаження повідомлень...
+                    </div>
+                </div>
+                
+                <!-- Форма відправки -->
+                <div class="card-footer border-secondary">
+                    <form id="chat-form" class="d-flex gap-2 align-items-center" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <input type="file" id="chat-image" accept="image/*" class="d-none">
+                        
+                        <button type="button" class="btn btn-outline-secondary fw-bold" onclick="document.getElementById('chat-image').click()" title="Прикріпити фото">
+                            <i class="bi bi-paperclip fs-5"></i>
+                        </button>
+
+                        <input type="text" id="chat-text" class="form-control bg-dark text-white border-secondary" placeholder="Напишіть повідомлення..." autocomplete="off">
+                        
+                        <button type="submit" class="btn btn-neon fw-bold px-4">
+                            <i class="bi bi-send-fill"></i>
+                        </button>
+                    </form>
+                    <small id="file-name-display" class="text-warning mt-1 d-block"></small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const chatBox = document.getElementById('chat-box');
+    const chatForm = document.getElementById('chat-form');
+    const chatText = document.getElementById('chat-text');
+    const chatImage = document.getElementById('chat-image');
+    const fileNameDisplay = document.getElementById('file-name-display');
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    let isUserScrolling = false;
+
+    chatBox.addEventListener('scroll', () => {
+        const isAtBottom = chatBox.scrollHeight - chatBox.scrollTop <= chatBox.clientHeight + 10;
+        isUserScrolling = !isAtBottom;
+    });
+
+    chatImage.addEventListener('change', function() {
+        if (this.files && this.files.length > 0) {
+            fileNameDisplay.innerHTML = `<i class="bi bi-image me-1"></i> Вибрано фото: ${this.files[0].name}`;
+        } else {
+            fileNameDisplay.innerHTML = '';
+        }
+    });
+
+    function loadMessages() {
+        fetch("{% url 'get_messages' receiver.id %}")
+            .then(response => response.json())
+            .then(data => {
+                chatBox.innerHTML = '';
+                
+                if (data.length === 0) {
+                    chatBox.innerHTML = '<div class="text-center text-white-50 mt-5">Тут ще немає повідомлень. Напишіть першим!</div>';
+                    return;
+                }
+
+                data.forEach(msg => {
+    const alignClass = msg.is_me ? 'text-end' : 'text-start';
+    const bgClass = msg.is_me ? 'bg-success bg-opacity-25 border-success' : 'bg-secondary bg-opacity-25 border-secondary';
+    const nameColor = msg.is_me ? 'text-neon-green' : 'text-warning';
+    
+    // Рендер аватара в повідомленні
+    let avatarHtml = '';
+    if (msg.sender_avatar) {
+        avatarHtml = `<img src="${msg.sender_avatar}" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">`;
+    } else {
+        avatarHtml = `<div class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center text-white fw-bold me-2" style="width: 30px; height: 30px; font-size: 0.8rem;">${msg.sender.charAt(0).toUpperCase()}</div>`;
+    }
+
+    let imageHtml = '';
+    if (msg.image_url) {
+        imageHtml = `<img src="${msg.image_url}" class="img-fluid rounded mt-2 mb-1" style="max-height: 200px; display: block;">`;
+    }
+    
+    let textHtml = msg.text ? `<span class="text-white" style="word-wrap: break-word;">${msg.text}</span>` : '';
+
+    chatBox.innerHTML += `
+        <div class="mb-3 ${alignClass}">
+            <div class="d-inline-block p-2 px-3 rounded border ${bgClass}" style="max-width: 80%; text-align: left;">
+                <div class="d-flex align-items-center mb-1">
+                    ${avatarHtml}
+                    <strong class="${nameColor}" style="font-size: 0.85rem;">${msg.sender}</strong>
+                </div>
+                ${imageHtml}
+                ${textHtml}
+                <small class="text-white-50 d-block mt-1" style="font-size: 0.7rem; text-align: right;">${msg.time}</small>
+            </div>
+        </div>
+    `;
+});
+
+                if (!isUserScrolling) {
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
+            });
+    }
+
+    chatForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const textValue = chatText.value.trim();
+        const fileData = chatImage.files[0];
+        
+        if (textValue || fileData) {
+            const formData = new FormData();
+            formData.append('text', textValue);
+            if (fileData) {
+                formData.append('image', fileData);
+            }
+            formData.append('csrfmiddlewaretoken', csrfToken);
+
+            fetch("{% url 'send_message' receiver.id %}", {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.status === 'ok') {
+                    chatText.value = '';
+                    chatImage.value = '';
+                    fileNameDisplay.innerHTML = '';
+                    isUserScrolling = false;
+                    loadMessages();
+                }
+            });
+        }
+    });
+
+    loadMessages();
+    setInterval(loadMessages, 2000);
+</script>
+{% endblock %}

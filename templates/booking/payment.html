@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Оплата бронювання №{{ booking.id }} — LaserStrike Arena{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center g-4">
+        <!-- Ліва колонка: Деталі замовлення -->
+        <div class="col-lg-5">
+            <div class="card card-arena p-4 h-100">
+                <h4 class="text-white mb-3"><i class="bi bi-receipt me-2 text-neon-green"></i>Деталі замовлення</h4>
+                <hr class="border-secondary">
+                
+                <div class="mb-3">
+                    <span class="text-muted d-block small">Обраний майданчик:</span>
+                    <strong class="text-white fs-5">{{ booking.arena.title }}</strong>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <span class="text-muted d-block small">Дата гри:</span>
+                        <strong class="text-light">{{ booking.booking_date }}</strong>
+                    </div>
+                    <div class="col-6">
+                        <span class="text-muted d-block small">Час сеансу:</span>
+                        <strong class="text-light">{{ booking.start_time|time:"H:i" }} - {{ booking.end_time|time:"H:i" }}</strong>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <span class="text-muted d-block small">Кількість гравців:</span>
+                    <strong class="text-light">{{ booking.players_count }} осіб</strong>
+                </div>
+
+                <hr class="border-secondary mt-auto">
+
+                <div class="d-flex justify-content-between align-items-center pt-2">
+                    <span class="fs-5 text-white">До сплати:</span>
+                    <span class="fs-3 fw-bold text-neon-green">{{ booking.total_price }} грн</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Права колонка: Форма оплати з візуалом картки -->
+        <div class="col-lg-6">
+            <div class="card card-arena p-4">
+                <h4 class="text-white mb-4"><i class="bi bi-credit-card me-2 text-neon-green"></i>Оплата карткою (Sandbox)</h4>
+                
+                <!-- Інтерактивна картка -->
+                <div class="p-4 rounded-4 mb-4 text-white shadow-lg" style="background: linear-gradient(135deg, #111827 0%, #1f2937 50%, #111827 100%); border: 1px solid #00ff88; min-height: 200px;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <span class="fw-bold tracking-wider text-neon-green fs-5">LaserStrike Pay</span>
+                        <i class="bi bi-chip fs-2 text-warning"></i>
+                    </div>
+                    <div class="fs-4 font-monospace mb-4 text-center tracking-widest" id="cardDisplayNumber">
+                        •••• •••• •••• ••••
+                    </div>
+                    <div class="d-flex justify-content-between align-items-end fs-6">
+                        <div>
+                            <small class="text-muted d-block text-uppercase" style="font-size: 10px;">Власник картки</small>
+                            <span id="cardDisplayHolder" class="text-uppercase fw-semibold">YOUR NAME</span>
+                        </div>
+                        <div>
+                            <small class="text-muted d-block text-uppercase" style="font-size: 10px;">Термін дії</small>
+                            <span id="cardDisplayExpiry" class="fw-semibold">MM/YY</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Форма -->
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-light small">{{ form.card_number.label }}</label>
+                        {{ form.card_number }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-light small">{{ form.card_holder.label }}</label>
+                        {{ form.card_holder }}
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <label class="form-label text-light small">{{ form.expiry_date.label }}</label>
+                            {{ form.expiry_date }}
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-light small">{{ form.cvv.label }}</label>
+                            {{ form.cvv }}
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-neon btn-lg w-100 fw-bold py-3">
+                        <i class="bi bi-lock-fill me-2"></i>Оплатити {{ booking.total_price }} грн
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Простий скрипт для відзеркалення вводу на картку -->
+<script>
+    document.getElementById('id_card_number').addEventListener('input', function(e) {
+        document.getElementById('cardDisplayNumber').innerText = e.target.value || '•••• •••• •••• ••••';
+    });
+    document.getElementById('id_card_holder').addEventListener('input', function(e) {
+        document.getElementById('cardDisplayHolder').innerText = e.target.value.toUpperCase() || 'YOUR NAME';
+    });
+    document.getElementById('id_expiry_date').addEventListener('input', function(e) {
+        document.getElementById('cardDisplayExpiry').innerText = e.target.value || 'MM/YY';
+    });
+</script>
+{% endblock %}

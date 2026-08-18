@@ -1,0 +1,223 @@
+{% extends 'base.html' %}
+
+{% block title %}Інтерактивний Лазерний Тир — LaserStrike Arena{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 text-center">
+            <h1 class="text-white mb-2"><i class="bi bi-crosshair text-danger me-2"></i>Лазерний Тир</h1>
+            <p class="text-secondary mb-4">Порази як можна більше мішеней за 30 секунд. Заробляй очки та тренуй меткість!</p>
+
+            <!-- Панель статистики -->
+            <div class="row g-3 justify-content-center mb-3">
+                <div class="col-6 col-sm-3">
+                    <div class="p-2 bg-dark rounded border border-secondary">
+                        <small class="text-muted d-block">Очки</small>
+                        <span id="scoreDisplay" class="fs-3 fw-bold text-neon-green">0</span>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-3">
+                    <div class="p-2 bg-dark rounded border border-secondary">
+                        <small class="text-muted d-block">Час</small>
+                        <span id="timerDisplay" class="fs-3 fw-bold text-warning">30s</span>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-3">
+                    <div class="p-2 bg-dark rounded border border-secondary">
+                        <small class="text-muted d-block">Патрони</small>
+                        <span id="ammoDisplay" class="fs-3 fw-bold text-danger">10 / 10</span>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-3">
+                    <div class="p-2 bg-dark rounded border border-secondary">
+                        <small class="text-muted d-block">Точність</small>
+                        <span id="accuracyDisplay" class="fs-3 fw-bold text-info">100%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Игровое поле Canvas -->
+            <div class="position-relative d-inline-block w-100" style="max-width: 800px;">
+                <canvas id="tirCanvas" width="800" height="450" class="w-100 rounded-4 border border-secondary bg-black shadow-lg" style="cursor: crosshair; touch-action: none;"></canvas>
+                
+                <!-- Экран старта / Оверлей -->
+                <div id="gameOverlay" class="position-absolute top-0 start-0 w-100 h-100 rounded-4 d-flex flex-column justify-content-center align-items-center bg-dark bg-opacity-75 p-4">
+                    <h2 id="overlayTitle" class="text-white mb-3">Готовий стріляти?</h2>
+                    <p id="overlayDesc" class="text-secondary mb-4">Натискай на що з’являються неонові мішені. Перезарядка на клавішу <strong>R</strong> або кнопку нижче.</p>
+                    <button id="startBtn" onclick="startGame()" class="btn btn-neon btn-lg fw-bold px-5 py-3">
+                        <i class="bi bi-play-fill me-2"></i>Почати Гру
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <button onclick="reloadAmmo()" class="btn btn-outline-warning fw-bold btn-sm">
+                    <i class="bi bi-arrow-repeat me-1"></i>Перезарядити (Клавіша R)
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const canvas = document.getElementById('tirCanvas');
+const ctx = canvas.getContext('2d');
+
+let score = 0;
+let ammo = 10;
+const maxAmmo = 10;
+let timeLeft = 30;
+let shotsFired = 0;
+let shotsHit = 0;
+let gameInterval = null;
+let timerInterval = null;
+let targets = [];
+let isPlaying = false;
+
+function spawnTarget() {
+    if (!isPlaying) return;
+    const radius = Math.floor(Math.random() * 15) + 20; // 20 - 35px
+    const x = Math.random() * (canvas.width - radius * 2) + radius;
+    const y = Math.random() * (canvas.height - radius * 2) + radius;
+    const color = Math.random() > 0.3 ? '#00ff88' : '#ff0055'; // Зеленая (100) или Красная (200 очков)
+    const points = color === '#00ff88' ? 100 : 200;
+
+    targets.push({ x, y, radius, color, points, spawnTime: Date.now(), duration: 2000 });
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Сетка тира на фоне
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < canvas.width; x += 40) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+    }
+    for (let y = 0; y < canvas.height; y += 40) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+    }
+
+    // Отрисовка мишеней
+    const now = Date.now();
+    targets = targets.filter(t => (now - t.spawnTime) < t.duration);
+
+    targets.forEach(t => {
+        // Внешнее неоновое кольцо
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, t.radius, 0, Math.PI * 2);
+        ctx.strokeStyle = t.color;
+        ctx.lineWidth = 3;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = t.color;
+        ctx.stroke();
+
+        // Внутреннее ядро
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, t.radius * 0.4, 0, Math.PI * 2);
+        ctx.fillStyle = t.color;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    });
+
+    if (isPlaying) requestAnimationFrame(draw);
+}
+
+function startGame() {
+    score = 0;
+    ammo = maxAmmo;
+    timeLeft = 30;
+    shotsFired = 0;
+    shotsHit = 0;
+    targets = [];
+    isPlaying = true;
+
+    updateUI();
+    document.getElementById('gameOverlay').classList.add('d-none');
+
+    gameInterval = setInterval(spawnTarget, 700);
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timerDisplay').innerText = timeLeft + 's';
+        if (timeLeft <= 0) endGame();
+    }, 1000);
+
+    requestAnimationFrame(draw);
+}
+
+canvas.addEventListener('click', (e) => {
+    if (!isPlaying) return;
+
+    if (ammo <= 0) {
+        showFloatingText("Нет патронов! Жми R", e.offsetX, e.offsetY, '#ff0055');
+        return;
+    }
+
+    ammo--;
+    shotsFired++;
+    
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const clickX = (e.clientX - rect.left) * scaleX;
+    const clickY = (e.clientY - rect.top) * scaleY;
+
+    let hit = false;
+
+    for (let i = targets.length - 1; i >= 0; i--) {
+        const t = targets[i];
+        const dist = Math.hypot(clickX - t.x, clickY - t.y);
+
+        if (dist <= t.radius) {
+            score += t.points;
+            shotsHit++;
+            hit = true;
+            targets.splice(i, 1);
+            showFloatingText("+" + t.points, clickX, clickY, t.color);
+            break;
+        }
+    }
+
+    updateUI();
+});
+
+function reloadAmmo() {
+    if (isPlaying) {
+        ammo = maxAmmo;
+        updateUI();
+    }
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'r' || e.key === 'R' || e.key === 'к' || e.key === 'К') {
+        reloadAmmo();
+    }
+});
+
+function showFloatingText(text, x, y, color) {
+    // Небольшой анимационный всплеск текста при попадании
+    ctx.fillStyle = color;
+    ctx.font = 'bold 20px sans-serif';
+    ctx.fillText(text, x - 15, y - 10);
+}
+
+function updateUI() {
+    document.getElementById('scoreDisplay').innerText = score;
+    document.getElementById('ammoDisplay').innerText = `${ammo} / ${maxAmmo}`;
+    const acc = shotsFired > 0 ? Math.round((shotsHit / shotsFired) * 100) : 100;
+    document.getElementById('accuracyDisplay').innerText = acc + '%';
+}
+
+function endGame() {
+    isPlaying = false;
+    clearInterval(gameInterval);
+    clearInterval(timerInterval);
+
+    document.getElementById('overlayTitle').innerText = "Час вийшов!";
+    document.getElementById('overlayDesc').innerHTML = `Ви набрали <strong class="text-neon-green fs-4">${score}</strong> очков при точності <strong>${document.getElementById('accuracyDisplay').innerText}</strong>!`;
+    document.getElementById('startBtn').innerHTML = '<i class="bi bi-arrow-counterclockwise me-2"></i>Грати Знову';
+    document.getElementById('gameOverlay').classList.remove('d-none');
+}
+</script>
+{% endblock %}

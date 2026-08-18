@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h2 class="text-white text-uppercase fw-bold mb-3">
+                <i class="bi bi-people-fill text-neon-green me-2"></i>Виберіть гравця для листування
+            </h2>
+
+            <div class="list-group bg-dark border border-secondary rounded-4 overflow-hidden">
+                {% for item in users %}
+                    <a href="{% url 'chat_room' item.user.id %}" class="list-group-item list-group-item-action bg-dark text-white border-secondary d-flex justify-content-between align-items-center py-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <!-- Виводимо аватарку, якщо вона є -->
+                            {% if item.avatar_url %}
+                                <img src="{{ item.avatar_url }}" class="rounded-circle border border-secondary" style="width: 45px; height: 45px; object-fit: cover;" alt="avatar">
+                            {% else %}
+                                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center text-white fw-bold border border-secondary" style="width: 45px; height: 45px; font-size: 1.1rem;">
+                                    {{ item.user.username|slice:":1"|upper }}
+                                </div>
+                            {% endif %}
+                            
+                            <div>
+                                <h5 class="mb-0 text-white fw-bold">{{ item.user.username }}</h5>
+                                <small class="text-white-50">Натисніть, щоб відкрити чат</small>
+                            </div>
+                        </div>
+                        <i class="bi bi-chevron-right text-neon-green fs-5"></i>
+                    </a>
+                {% empty %}
+                    <div class="p-4 text-center text-white-50">
+                        На сайті поки немає інших користувачів.
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
