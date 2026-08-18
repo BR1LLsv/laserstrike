@@ -5,7 +5,6 @@
 {% block content %}
 <div class="container py-4">
     <div class="row g-4">
-        <!-- Ліва колонка: Профіль гравця -->
         <div class="col-lg-4">
             <div class="card card-arena p-4 text-center mb-4">
                 <div class="position-relative d-inline-block mx-auto mb-3">
@@ -21,7 +20,6 @@
                 <p class="text-muted small"><i class="bi bi-telephone me-1"></i>{{ user.profile.phone|default:"Телефон не вказано" }}</p>
             </div>
 
-            <!-- Форма редагування -->
             <div class="card card-arena p-4">
                 <h4 class="text-white mb-3"><i class="bi bi-gear me-2 text-neon-green"></i>Налаштування</h4>
                 <form method="post" enctype="multipart/form-data">
@@ -51,54 +49,53 @@
             </div>
         </div>
 
-        <!-- Права колонка: Історія Бронювань -->
         <div class="col-lg-8">
             <div class="card card-arena p-4">
                 <h3 class="text-white mb-4"><i class="bi bi-journal-check me-2 text-neon-green"></i>Мої Бронювання</h3>
                 
                 {% for b in bookings %}
-    <div class="p-3 mb-3 rounded bg-dark border border-secondary d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-        <div>
-            <div class="d-flex align-items-center gap-2 mb-1">
-                <h5 class="text-white m-0">{{ b.arena.title }}</h5>
-                {% if b.status == 'new' %}
-                    <span class="badge bg-warning text-dark">Очікує оплати</span>
-                {% elif b.status == 'paid' %}
-                    <span class="badge bg-success">Оплачено</span>
-                {% elif b.status == 'cancelled' %}
-                    <span class="badge bg-danger">Скасовано</span>
-                {% else %}
-                    <span class="badge bg-secondary">Завершено</span>
-                {% endif %}
-            </div>
-            <small class="text-white-50 d-block">
-                <i class="bi bi-calendar-event me-1"></i>{{ b.booking_date }} | {{ b.start_time|time:"H:i" }} - {{ b.end_time|time:"H:i" }}
-            </small>
-            <small class="text-white-50 d-block">
-                <i class="bi bi-people me-1"></i>Гравців: {{ b.players_count }}
-            </small>
-        </div>
-        <div class="text-md-end">
-            <span class="fs-5 fw-bold text-neon-green d-block mb-2">{{ b.total_price }} грн</span>
-            
-            {% if b.status == 'new' %}
-                <div class="d-flex gap-2 justify-content-md-end">
-                    <a href="{% url 'pay_booking' b.id %}" class="btn btn-neon btn-sm fw-bold">Оплатити</a>
-                    <form method="post" action="{% url 'cancel_booking' b.id %}" class="m-0">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-outline-danger btn-sm fw-bold" onclick="return confirm('Скасувати бронювання?');">Відмінити</button>
-                    </form>
-                </div>
-            {% elif b.status == 'paid' %}
-                <a href="{% url 'ticket_detail' b.id %}" class="btn btn-outline-warning btn-sm fw-bold">Квиток (QR)</a>
-            {% endif %}
-        </div>
-    </div>
-{% empty %}
-    <div class="text-center py-5">
-        <p class="text-white-50">У вас поки немає активних або минулих бронювань.</p>
-    </div>
-{% endfor %}
+                    <div class="p-3 mb-3 rounded bg-dark border border-secondary d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <h5 class="text-white m-0">{{ b.arena.title }}</h5>
+                                {% if b.status == 'new' %}
+                                    <span class="badge bg-warning text-dark">Очікує оплати</span>
+                                {% elif b.status == 'paid' %}
+                                    <span class="badge bg-success">Оплачено</span>
+                                {% elif b.status == 'cancelled' %}
+                                    <span class="badge bg-danger">Скасовано</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Завершено</span>
+                                {% endif %}
+                            </div>
+                            <small class="text-white-50 d-block">
+                                <i class="bi bi-calendar-event me-1"></i>{{ b.booking_date }} | {{ b.start_time|time:"H:i" }} - {{ b.end_time|time:"H:i" }}
+                            </small>
+                            <small class="text-white-50 d-block">
+                                <i class="bi bi-people me-1"></i>Гравців: {{ b.players_count }}
+                            </small>
+                        </div>
+                        <div class="text-md-end">
+                            <span class="fs-5 fw-bold text-neon-green d-block mb-2">{{ b.total_price }} грн</span>
+                            
+                            {% if b.status == 'new' %}
+                                <div class="d-flex gap-2 justify-content-md-end">
+                                    <a href="{% url 'pay_booking' b.id %}" class="btn btn-neon btn-sm fw-bold">Оплатити</a>
+                                    <form method="post" action="{% url 'cancel_booking' b.id %}" class="m-0">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-outline-danger btn-sm fw-bold" onclick="return confirm('Скасувати бронювання?');">Відмінити</button>
+                                    </form>
+                                </div>
+                            {% elif b.status == 'paid' %}
+                                <a href="{% url 'ticket_detail' b.id %}" class="btn btn-outline-warning btn-sm fw-bold">Квиток (QR)</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="text-center py-5">
+                        <p class="text-white-50">У вас поки немає активних або минулих бронювань.</p>
+                    </div>
+                {% endfor %}
             </div>
         </div>
     </div>

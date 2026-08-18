@@ -6,7 +6,6 @@
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-8 col-lg-6">
-            <!-- Картка квитка з можливістю друку -->
             <div id="ticketCard" class="card card-arena p-4 text-center border-warning shadow-lg position-relative overflow-hidden">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <span class="badge bg-success px-3 py-2 fs-6"><i class="bi bi-check-circle me-1"></i>Оплачено</span>
@@ -16,7 +15,6 @@
                 <h2 class="text-white my-2">{{ booking.arena.title }}</h2>
                 <p class="text-neon-green fs-5 mb-4"><i class="bi bi-geo-alt me-1"></i>LaserStrike Arena</p>
 
-                <!-- Генерація QR-коду -->
                 <div class="bg-white p-3 d-inline-block rounded-3 mx-auto mb-4 border border-secondary">
                     <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" class="img-fluid" style="width: 180px; height: 180px;">
                     <small class="d-block text-dark fw-bold mt-1" style="font-size: 11px;">СКАНУЙТЕ НА ВХОДІ</small>
@@ -56,7 +54,6 @@
     </div>
 </div>
 
-<!-- Стилі для чистого друку лише квитка -->
 <style>
 @media print {
     body * {

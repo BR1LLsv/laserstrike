@@ -1,35 +1,26 @@
 from django.db import models
+from django.utils.text import slugify
 
 class Category(models.Model):
-    name = models.CharField("Назва категорії", max_length=100)
-    slug = models.SlugField("URL-слаг", unique=True)
+    name = models.CharField(max_length=100)
+    slug = models.SlugField(unique=True, blank=True)
 
-    class Meta:
-        verbose_name = "Категорія"
-        verbose_name_plural = "Категорії"
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
 
-
 class Arena(models.Model):
-    category = models.ForeignKey(
-        Category, 
-        on_delete=models.CASCADE, 
-        related_name='arenas', 
-        verbose_name="Категорія"
-    )
-    title = models.CharField("Назва арени/майданчика", max_length=200)
-    description = models.TextField("Опис")
-    price_per_hour = models.DecimalField("Ціна за годину (грн)", max_digits=8, decimal_places=2)
-    photo = models.ImageField("Головне фото", upload_to='arenas/')
-    max_players = models.PositiveIntegerField("Макс. кількість гравців", default=10)
-    is_available = models.BooleanField("Доступно для бронювання", default=True)
-    created_at = models.DateTimeField("Дата створення", auto_now_add=True)
-
-    class Meta:
-        verbose_name = "Арена"
-        verbose_name_plural = "Арени"
+    title = models.CharField(max_length=200)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='arenas')
+    description = models.TextField()
+    price_per_hour = models.DecimalField(max_digits=8, decimal_places=2)
+    max_players = models.IntegerField(default=10)
+    image = models.ImageField(upload_to='arenas/', blank=True, null=True)
+    is_available = models.BooleanField(default=True)
 
     def __str__(self):
         return self.title
