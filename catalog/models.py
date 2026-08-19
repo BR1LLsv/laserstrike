@@ -1,4 +1,5 @@
 from django.db import models
+from cloudinary.models import CloudinaryField
 
 class Category(models.Model):
     name = models.CharField("Назва категорії", max_length=100)
@@ -22,7 +23,7 @@ class Arena(models.Model):
     title = models.CharField("Назва арени/майданчика", max_length=200)
     description = models.TextField("Опис")
     price_per_hour = models.DecimalField("Ціна за годину (грн)", max_digits=8, decimal_places=2)
-    photo = models.ImageField("Головне фото", upload_to='arenas/')
+    photo = CloudinaryField('image')
     max_players = models.PositiveIntegerField("Макс. кількість гравців", default=10)
     is_available = models.BooleanField("Доступно для бронювання", default=True)
     created_at = models.DateTimeField("Дата створення", auto_now_add=True)
